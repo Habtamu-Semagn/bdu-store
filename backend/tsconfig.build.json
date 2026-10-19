@@ -5,7 +5,7 @@
     "outDir": "./dist",
     "noEmit": false,
     "incremental": false,
-    "types": ["node"]
+    "types": ["node", "express", "cookie-parser", "passport-jwt"]
   },
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules", "dist", "test", "**/*.spec.ts"]
