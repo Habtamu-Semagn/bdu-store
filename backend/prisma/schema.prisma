@@ -1,0 +1,74 @@
+// BDU Store — campus device storage schema.
+// Two roles (USER / ADMIN), devices, and release requests. No email anywhere.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  fullName     String
+  universityId String   @unique // format: bdu######## (e.g., bdu1504757)
+  passwordHash String
+  role         String   @default("USER") // USER | ADMIN
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @default(now()) @updatedAt
+
+  devices          Device[]         @relation("DeviceOwner")
+  approvedStorages Device[]         @relation("DeviceStorageApprovedBy")
+  rejectedStorages Device[]         @relation("DeviceStorageRejectedBy")
+  reviewedReleases ReleaseRequest[] @relation("ReleaseReviewedBy")
+
+  @@map("User")
+}
+
+model Device {
+  id                     String    @id @default(uuid())
+  userId                 String
+  user                   User      @relation("DeviceOwner", fields: [userId], references: [id])
+  productType            String // DESKTOP_COMPUTER | LAPTOP | MOBILE_PHONE | TABLET | OTHER
+  productName            String
+  brand                  String?
+  model                  String?
+  serialNumber           String?
+  description            String?
+  storageStatus          String    @default("PENDING") // PENDING | STORED | REJECTED | RELEASED
+  storageToken           String?   @unique // issued only when storage is approved
+  storageSubmittedAt     DateTime  @default(now())
+  storageApprovedAt      DateTime?
+  storageApprovedBy      String?
+  storageApprovedByUser  User?     @relation("DeviceStorageApprovedBy", fields: [storageApprovedBy], references: [id])
+  storageRejectedAt      DateTime?
+  storageRejectedBy      String?
+  storageRejectedByUser  User?     @relation("DeviceStorageRejectedBy", fields: [storageRejectedBy], references: [id])
+  storageRejectionReason String?
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @default(now()) @updatedAt
+
+  releaseRequests ReleaseRequest[] @relation("DeviceReleaseRequests")
+
+  @@index([userId])
+  @@index([storageStatus])
+  @@map("Device")
+}
+
+model ReleaseRequest {
+  id              String    @id @default(uuid())
+  deviceId        String
+  device          Device    @relation("DeviceReleaseRequests", fields: [deviceId], references: [id])
+  requestedAt     DateTime  @default(now())
+  status          String    @default("PENDING") // PENDING | APPROVED | REJECTED
+  reviewedAt      DateTime?
+  reviewedBy      String?
+  reviewedByUser  User?     @relation("ReleaseReviewedBy", fields: [reviewedBy], references: [id])
+  rejectionReason String?
+
+  @@index([deviceId])
+  @@index([status])
+  @@map("ReleaseRequest")
+}
