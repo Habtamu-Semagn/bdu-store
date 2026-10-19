@@ -4,8 +4,7 @@
     "rootDir": "./src",
     "outDir": "./dist",
     "noEmit": false,
-    "incremental": false,
-    "types": ["node", "express", "cookie-parser", "passport-jwt"]
+    "incremental": false
   },
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules", "dist", "test", "**/*.spec.ts"]
